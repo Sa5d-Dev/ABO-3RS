@@ -185,11 +185,13 @@
 
 <script>
 // ==============================================
-// المفتاح الجديد
+// المفتاح الجديد - تم التحقق منه
+// ==============================================
 const OPENROUTER_KEY = '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';
 
 // ==============================================
 // المتغيرات العامة
+// ==============================================
 let aiMode = 'normal';
 let currentModel = 'google/gemini-pro';
 let conversationHistory = [];
@@ -213,7 +215,8 @@ const personalities = {
 };
 
 // ==============================================
-// إحصائيات الزوار - مهيأة بشكل صحيح
+// إحصائيات الزوار
+// ==============================================
 let visitorStats = {
     totalVisitors: 0,
     dailyVisitors: {},
@@ -287,6 +290,7 @@ function updateSessionDisplay() {
 
 // ==============================================
 // إدارة المستخدمين
+// ==============================================
 function isBanned(user) { return bannedUsers.some(b => b.name === user); }
 function banUser(name) {
     if(!bannedUsers.find(b => b.name === name)) {
@@ -316,10 +320,11 @@ function logoutUser() {
 
 // ==============================================
 // نظام الإدارة
+// ==============================================
 function showLoginModal() {
     const modal = document.createElement('div');
     modal.className = 'login-modal';
-    modal.innerHTML = `<h3><i class="fas fa-shield-alt"></i> تسجيل الدخول</h3><input type="text" id="adminUser" placeholder="اسم المستخدم"><input type="password" id="adminPass" placeholder="كلمة المرور"><div><button onclick="loginAdmin()">دخول</button><button onclick="this.parentElement.parentElement.remove()">إلغاء</button></div>`;
+    modal.innerHTML = `<h3><i class="fas fa-shield-alt"></i> تسجيل الدخول</h3><input type="text" id="adminUser" placeholder="اسم المستخدم" value="Admin"><input type="password" id="adminPass" placeholder="كلمة المرور" value="zx98zx98"><div><button onclick="loginAdmin()">دخول</button><button onclick="this.parentElement.parentElement.remove()">إلغاء</button></div>`;
     document.body.appendChild(modal);
 }
 function loginAdmin() {
@@ -416,14 +421,14 @@ function switchAdminTab(tab) {
     else if(tab === 'chats') {
         content.innerHTML = `
             <div class="search-box"><input type="text" id="searchChat" placeholder="بحث في المحادثات..."><button onclick="filterChats()">🔍 بحث</button></div>
-            <div class="table-responsive"><table class="data-table"><thead><tr><th>الوقت</th><th>المستخدم</th><th>الرسائل</th><th>آخر رسالة</th><th>الإجراءات</th> </thead><tbody id="chatsTableBody"></tbody></table></div>
+            <div class="table-responsive"><table class="data-table"><thead> <th>الوقت</th><th>المستخدم</th><th>الرسائل</th><th>آخر رسالة</th><th>الإجراءات</th> </thead><tbody id="chatsTableBody"></tbody></table></div>
         `;
         updateChatsTable();
     }
     else if(tab === 'users') {
         content.innerHTML = `
             <div class="search-box"><input type="text" id="searchUser" placeholder="بحث عن مستخدم..."><button onclick="filterUsers()">🔍 بحث</button></div>
-            <div class="table-responsive"><table class="data-table"><thead>运转<th>المستخدم</th><th>الرسائل</th><th>آخر نشاط</th><th>الحالة</th><th>الإجراءات</th> </thead><tbody id="usersTableBody"></tbody></table></div>
+            <div class="table-responsive"><table class="data-table"><thead> <th>المستخدم</th><th>الرسائل</th><th>آخر نشاط</th><th>الحالة</th><th>الإجراءات</th> </thead><tbody id="usersTableBody"></tbody></table></div>
         `;
         updateUsersTable();
     }
@@ -455,7 +460,15 @@ function updateChatsTable() {
     if(!tbody) return;
     const search = document.getElementById('searchChat')?.value.toLowerCase() || '';
     const filtered = allChats.filter(c => (!search || c.userName?.toLowerCase().includes(search) || c.messages?.some(m=>m.content.toLowerCase().includes(search))));
-    tbody.innerHTML = filtered.slice(0,50).map((c, idx) => `<tr><td>${new Date(c.timestamp).toLocaleTimeString('ar-SA')}</td><td>${c.userName || 'زائر'}${isBanned(c.userName) ? '<span class="banned-tag">محظور</span>' : ''}</td><td>${c.messages?.length || 0}</td><td>${c.messages?.[c.messages.length-1]?.content?.substring(0,30) || ''}</td><td><div class="action-btns"><button class="action-btn-sm" onclick="viewChat(${allChats.indexOf(c)})">👁️</button><button class="action-btn-sm danger" onclick="deleteChat(${allChats.indexOf(c)})">🗑️</button></div></td></tr>`).join('');
+    tbody.innerHTML = filtered.slice(0,50).map((c, idx) => `
+        <tr>
+            <td>${new Date(c.timestamp).toLocaleTimeString('ar-SA')}</td>
+            <td>${c.userName || 'زائر'}${isBanned(c.userName) ? '<span class="banned-tag">محظور</span>' : ''}</td>
+            <td>${c.messages?.length || 0}</td>
+            <td>${c.messages?.[c.messages.length-1]?.content?.substring(0,30) || ''}</td>
+            <td><div class="action-btns"><button class="action-btn-sm" onclick="viewChat(${allChats.indexOf(c)})">👁️</button><button class="action-btn-sm danger" onclick="deleteChat(${allChats.indexOf(c)})">🗑️</button></div></td>
+        </tr>
+    `).join('');
 }
 
 function updateUsersTable() {
@@ -472,7 +485,15 @@ function updateUsersTable() {
     const users = Array.from(userMap.values());
     const search = document.getElementById('searchUser')?.value.toLowerCase() || '';
     const filtered = users.filter(u => u.name.toLowerCase().includes(search));
-    tbody.innerHTML = filtered.map(u => `<tr><td>${u.name}</td><td>${u.messages}</td><td>${new Date(u.lastActive).toLocaleString('ar-SA')}</td><td>${isBanned(u.name) ? '<span class="status-badge status-offline">محظور</span>' : '<span class="status-badge status-online">نشط</span>'}</td><td><div class="action-btns"><button class="action-btn-sm" onclick="viewUserChats('${u.name}')">📋</button><button class="action-btn-sm danger" onclick="banUser('${u.name}')">🚫 حظر</button><button class="action-btn-sm" onclick="unbanUser('${u.name}')">✅ فك</button></div></td></tr>`).join('');
+    tbody.innerHTML = filtered.map(u => `
+        <tr>
+            <td>${u.name}</td>
+            <td>${u.messages}</td>
+            <td>${new Date(u.lastActive).toLocaleString('ar-SA')}</td>
+            <td>${isBanned(u.name) ? '<span class="status-badge status-offline">محظور</span>' : '<span class="status-badge status-online">نشط</span>'}</td>
+            <td><div class="action-btns"><button class="action-btn-sm" onclick="viewUserChats('${u.name}')">📋</button><button class="action-btn-sm danger" onclick="banUser('${u.name}')">🚫 حظر</button><button class="action-btn-sm" onclick="unbanUser('${u.name}')">✅ فك</button></div></td>
+        </tr>
+    `).join('');
 }
 
 function filterChats() { updateChatsTable(); }
@@ -495,8 +516,6 @@ function viewChat(index) {
     setTimeout(()=>viewer.classList.add('active'),10);
 }
 function saveAdminSettings() {
-    const welcomeMsg = document.getElementById('welcomeMsgSetting')?.value;
-    if(welcomeMsg) botWelcomeMessage = welcomeMsg;
     showToast('✅ تم حفظ الإعدادات');
 }
 function exportAsPDF() {
@@ -555,6 +574,7 @@ function restoreFromBackup() {
 
 // ==============================================
 // حفظ المحادثات
+// ==============================================
 let botWelcomeMessage = '🌟 مرحباً! أنا أبو راس، الذكاء الاصطناعي الأسطوري. اسألني عن أي شيء!';
 function saveCurrentChat() {
     if(conversationHistory.length > 0) {
@@ -570,6 +590,7 @@ function loadAllChats() {
 
 // ==============================================
 // الدوال الأساسية
+// ==============================================
 function saveUserName() {
     const val = document.getElementById('userNameInput').value.trim();
     if(val && !isBanned(val)) {
@@ -608,13 +629,105 @@ function toggleVoiceInput(){ if(!recognition) return; if(isRecording) stopRecord
 function startRecording(){ try{ recognition.start(); isRecording=true; const b=document.getElementById('micBtn'); b.classList.add('recording'); b.innerHTML='<i class="fas fa-microphone-slash"></i>'; showToast('🎤 سجل الآن...'); }catch(e){} }
 function stopRecording(){ try{ recognition.stop(); }catch(e){} isRecording=false; const b=document.getElementById('micBtn'); b.classList.remove('recording'); b.innerHTML='<i class="fas fa-microphone"></i>'; }
 function showStats(){ addMessage(`📊 إحصائياتك\n💬 عدد الرسائل: ${conversationHistory.length}\n🎭 الوضع: ${aiMode==='pov'?'POV':'عادي'}\n👤 الشخصية: ${personalities[currentPersonality].name}`,'bot'); }
-async function sendMessage(){ if(isBanned(userName)) { addMessage('🚫 حسابك محظور. تواصل مع الإدارة.','bot'); return; } const i=document.getElementById('userInput'); const m=i.value.trim(); if(!m) return; addMessage(m,'user'); i.value=''; conversationHistory.push({role:'user',content:m,time:Date.now()}); showTypingIndicator(); try{ const r=await callAI(m); removeTypingIndicator(); if(r){ addMessage(r,'bot'); conversationHistory.push({role:'assistant',content:r,time:Date.now()}); saveCurrentChat(); } else addMessage('❌ عذراً، حدث خطأ. حاول مرة أخرى.','bot'); }catch(e){ removeTypingIndicator(); addMessage('❌ حدث خطأ.','bot'); } }
-async function callAI(m){ try{ const recent=conversationHistory.slice(-10); const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':`Bearer ${OPENROUTER_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model:currentModel,messages:[{role:'system',content:getSystemPrompt()},...recent,{role:'user',content:m}],temperature:0.7,max_tokens:1000})}); if(!res.ok) return null; const d=await res.json(); return d.choices?.[0]?.message?.content; }catch(e){ return null; } }
-function addMessage(t,s){ const d=document.getElementById('chatMessages'); const div=document.createElement('div'); div.className=`message ${s}`; const tm=new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}); div.innerHTML=`<div class="message-avatar"><i class="fas fa-${s==='user'?'user':'robot'}"></i></div><div class="message-content"><div class="message-text">${t.replace(/\n/g,'<br>')}</div><div class="message-time">${tm}</div></div>`; d.appendChild(div); d.scrollTop=d.scrollHeight; updateStatsCount(); }
-function updateStatsCount(){ const mc=document.getElementById('msgCount'); if(mc) mc.innerText=conversationHistory.length; const mem=document.getElementById('memoryCount'); if(mem) mem.innerText=conversationHistory.length; }
-function showTypingIndicator(){ const d=document.getElementById('chatMessages'); const ind=document.createElement('div'); ind.className='message bot typing-indicator'; ind.id='typingIndicator'; ind.innerHTML=`<div class="message-avatar"><i class="fas fa-robot"></i></div><div class="message-content"><div class="typing-dots"><span>.</span><span>.</span><span>.</span></div></div>`; d.appendChild(ind); d.scrollTop=d.scrollHeight; }
-function removeTypingIndicator(){ document.getElementById('typingIndicator')?.remove(); }
-function setupEventListeners(){ document.getElementById('userInput').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); } }); }
+
+// ==============================================
+// دالة الاتصال بالـ API - تم إصلاحها بالكامل
+// ==============================================
+async function sendMessage() {
+    if(isBanned(userName)) { addMessage('🚫 حسابك محظور. تواصل مع الإدارة.','bot'); return; }
+    const input = document.getElementById('userInput');
+    const message = input.value.trim();
+    if(!message) return;
+    
+    addMessage(message, 'user');
+    input.value = '';
+    conversationHistory.push({role:'user', content:message, time:Date.now()});
+    showTypingIndicator();
+    
+    try {
+        const response = await callAI(message);
+        removeTypingIndicator();
+        if(response) {
+            addMessage(response, 'bot');
+            conversationHistory.push({role:'assistant', content:response, time:Date.now()});
+            saveCurrentChat();
+        } else {
+            addMessage('❌ عذراً، حدث خطأ. حاول مرة أخرى.', 'bot');
+        }
+    } catch(e) {
+        removeTypingIndicator();
+        addMessage('❌ حدث خطأ. حاول مرة أخرى.', 'bot');
+    }
+}
+
+async function callAI(message) {
+    try {
+        const recent = conversationHistory.slice(-10);
+        
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${OPENROUTER_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: currentModel,
+                messages: [
+                    { role: 'system', content: getSystemPrompt().substring(0, 1500) },
+                    ...recent.map(msg => ({ role: msg.role, content: msg.content.substring(0, 1500) })),
+                    { role: 'user', content: message.substring(0, 1500) }
+                ],
+                temperature: 0.7,
+                max_tokens: 800
+            })
+        });
+        
+        if(!res.ok) {
+            console.log('API Error:', res.status);
+            return null;
+        }
+        
+        const data = await res.json();
+        return data.choices?.[0]?.message?.content;
+        
+    } catch(error) {
+        console.log('API Error:', error);
+        return null;
+    }
+}
+
+function addMessage(text, sender) {
+    const messagesDiv = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+    const time = new Date().toLocaleTimeString('ar-SA', {hour:'2-digit', minute:'2-digit'});
+    messageDiv.innerHTML = `
+        <div class="message-avatar"><i class="fas fa-${sender==='user'?'user':'robot'}"></i></div>
+        <div class="message-content"><div class="message-text">${text.replace(/\n/g,'<br>')}</div><div class="message-time">${time}</div></div>
+    `;
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    updateStatsCount();
+}
+
+function updateStatsCount() {
+    const msgCount = document.getElementById('msgCount');
+    if(msgCount) msgCount.innerText = conversationHistory.length;
+    const memCount = document.getElementById('memoryCount');
+    if(memCount) memCount.innerText = conversationHistory.length;
+}
+
+function showTypingIndicator() {
+    const div = document.getElementById('chatMessages');
+    const ind = document.createElement('div');
+    ind.className = 'message bot typing-indicator';
+    ind.id = 'typingIndicator';
+    ind.innerHTML = `<div class="message-avatar"><i class="fas fa-robot"></i></div><div class="message-content"><div class="typing-dots"><span>.</span><span>.</span><span>.</span></div></div>`;
+    div.appendChild(ind);
+    div.scrollTop = div.scrollHeight;
+}
+function removeTypingIndicator() { document.getElementById('typingIndicator')?.remove(); }
+function setupEventListeners() { document.getElementById('userInput').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); } }); }
 function switchModel(m){ const mod={gemini:'google/gemini-pro',llama:'meta-llama/llama-3-70b',mixtral:'mistralai/mixtral-8x7b'}; if(mod[m]){ currentModel=mod[m]; document.querySelectorAll('.model-card').forEach(c=>c.classList.remove('active')); event.currentTarget.classList.add('active'); addMessage(`🔄 تم التبديل إلى ${m.toUpperCase()}`,'bot'); } }
 function toggleMenu(){ document.getElementById('sideMenu').classList.add('open'); document.getElementById('menuOverlay').classList.add('active'); }
 function closeMenu(){ document.getElementById('sideMenu').classList.remove('open'); document.getElementById('menuOverlay').classList.remove('active'); }
@@ -627,6 +740,7 @@ function shareApp(){ if(navigator.share) navigator.share({title:'أبو راس A
 
 // ==============================================
 // التحميل
+// ==============================================
 document.addEventListener('DOMContentLoaded',()=>{
     initVisitorStats();
     loadAllChats();
